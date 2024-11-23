@@ -33,6 +33,7 @@ app.get('/test', (req, res) => {
     res.render('test');
 });
 
+
 // Error handling
 app.use(errorHandler);
 

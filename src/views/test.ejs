@@ -12,6 +12,20 @@
             document.getElementById('ikasleak').innerText = JSON.stringify(data, null, 2);
         }
 
+        async function fetchCombo() {
+            const response = await fetch('/api/ikasleak');
+            const data = await response.json();
+
+            const combobox = document.getElementById('ikasle-combobox');
+            combobox.innerHTML = '<option value="" disabled selected>Choose an ikasle</option>';
+            data.forEach(ikasle => {
+                const option = document.createElement('option');
+                option.value = ikasle._id;  
+                option.textContent = ikasle.izena;  
+                combobox.appendChild(option);
+            });
+        }
+
         async function createIkasle() {
             const izena = document.getElementById('izena').value;
             const adina = document.getElementById('adina').value;
@@ -27,6 +41,8 @@
 
             const data = await response.json();
             document.getElementById('newIkasle').innerText = JSON.stringify(data, null, 2);
+
+            fetchCombo();
         }
 
         async function deleteIkasle() {
@@ -42,8 +58,51 @@
             null,
             2
             );
+
+            fetchCombo();
         }
 
+        async function editIkasle() {
+            const id = document.getElementById('ikasle-combobox').value;
+            
+            const updatedIkasle = {
+                izena: document.getElementById('newName').value,
+                adina: document.getElementById('newAdina').value,
+                email: document.getElementById('newEmail').value
+            };
+
+            try {
+                const response = await fetch(`/api/ikasleak/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedIkasle)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                document.getElementById("editedIkasle").innerText = JSON.stringify(
+                    data,
+                    null,
+                    2
+                );
+
+                // Actualizar el combo box después de la edición
+                await fetchCombo();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById("editedIkasle").innerText = `Ikaslea ez da aurkitu`;
+            }
+        }
+
+        window.onload = function() {
+            fetchCombo();
+        }
     </script>
 </head>
 <body>
@@ -84,16 +143,16 @@
     </select>
     <br>
         <label for="name">Izena:</label>
-        <input type="text" id="newName" name="newName">
+        <input type="text" id="newName" name="newName" required>
         <br>
         <label for="adina">Adina:</label>
-        <input type="text" id="newAdina" name="newAdina">
+        <input type="number" id="newAdina" name="newAdina" required>
         <br>
         <label for="email">Email:</label>
-        <input type="text" id="newEmail" name="newEmail">
+        <input type="email" id="newEmail" name="newEmail" required>
         <br>
         <button type="submit">Edit</button>
     </form>
-    <pre id="deletedIkasle"></pre>
+    <pre id="editedIkasle"></pre>
 </body>
 </html>
